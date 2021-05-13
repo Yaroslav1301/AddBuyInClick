@@ -1,0 +1,29 @@
+<?php
+/**
+ * @var Kozar\AddBuyInClick\Block\Index $block
+ */
+?>
+<div data-mage-init='{"myjs": {}}'>
+    <input class="action primary tocart" type="button" value="<?=__('Buy now')?>" id="buy_now">
+</div>
+<div id="popup-modal" style="display:none;">
+    <form id="buy_now_form" >
+        <fieldset class="fieldset">
+            <p><?=__('Введіть свій номер телефону, і ми зв\'яжемось з вами, щоб прояснити деталі вашого замовлення')?></p>
+            <label for="number"><?=__('Номер телефону')?></label><input id="number" type="text"/>
+            <input id="sku" type="hidden" value="<?= $block->getProduct()->getSku()?> "/>
+            <label for="name"><?=__('Имя')?></label><input id="name" type="text" placeholder="Enter your name:"/>
+            <div class="field emailaddress required">
+                <label class="label" for="emailaddress"><span><?= $block->escapeHtml(__('Email')) ?></span></label>
+                <div class="control">
+                    <input name="emailaddress" id="emailaddress" title="<?= $block->escapeHtmlAttr(__('Email')) ?>"
+                           class="input-text" type="email" data-validate="{required:true, 'validate-email':true}"
+                           placeholder="kozar.yaroslav@gmail.com"/>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+
+
