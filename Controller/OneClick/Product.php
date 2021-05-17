@@ -28,11 +28,13 @@ class Product extends Action
      */
     protected $helper;
 
+
+
     /**
      * Product constructor.
      * @param \Kozar\AddBuyInClick\Helper\Data $helper
      * @param \Magento\Customer\Model\ResourceModel\Customer\CollectionFactory $customerFactory
-     * @param \Magento\Catalog\Model\ProductRepository $productRepository
+     * @param \Magento\Catalog\Model\ProductRepository $productRepository,
      * @param Context $context
      */
 

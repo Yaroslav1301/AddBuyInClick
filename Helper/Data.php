@@ -55,6 +55,11 @@ class Data extends AbstractHelper
     protected $orderResource;
 
     /**
+     * @var Magento\Sales\Model\ResourceModel\Order\CollectionFactory
+     */
+    protected $orderCollection;
+
+    /**
      * Data constructor.
      * @param Context $context
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
@@ -81,7 +86,8 @@ class Data extends AbstractHelper
         \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
         \Magento\Framework\Message\ManagerInterface $messageManager,
         \Magento\Customer\Model\ResourceModel\Customer $customerResource,
-        \Magento\Sales\Model\ResourceModel\Order $orderResource
+        \Magento\Sales\Model\ResourceModel\Order $orderResource,
+        \Magento\Sales\Model\ResourceModel\Order\CollectionFactory $orderCollectionFactory
     ) {
         $this->messageManager = $messageManager;
         $this->storeManager = $storeManager;
@@ -94,6 +100,7 @@ class Data extends AbstractHelper
         $this->customerResource = $customerResource;
         $this->quoteResource = $quoteResource;
         $this->orderResource = $orderResource;
+        $this->orderCollection = $orderCollectionFactory;
         parent::__construct($context);
     }
 
@@ -105,8 +112,20 @@ class Data extends AbstractHelper
      * Creating order in 1 click programmatically
      *
      */
+
+    public function getLastOrder($id)
+    {
+        $collection = $this->orderCollection->create($id)->addAttributeToSelect('*')->setOrder('created_at', 'desc');
+        $last_order = $collection->getFirstItem();
+        $shippingMethod = $last_order->getData('shipping_method');
+        $paymentMethod = $last_order->getPayment()->getMethod();
+
+        return ['payment_method' => $paymentMethod, 'shipping_method' => $shippingMethod];
+    }
+
     public function createOrder($orderInfo)
     {
+        $checkRegistredCustomer = false;
         $store = $this->storeManager->getStore();
         $websiteId = $this->storeManager->getStore()->getWebsiteId();
         $customer = $this->customerFactory->create();
@@ -126,6 +145,8 @@ class Data extends AbstractHelper
                 ->setEmail($orderInfo['email'])
                 ->setPassword($orderInfo['email']);
             $this->customerResource->save($customer);
+        }else {
+            $checkRegistredCustomer = true;
         }
         $quote = $this->quote->create(); //Create object of quote
         $quote->setStore($store); //set store for our quote
@@ -153,8 +174,14 @@ class Data extends AbstractHelper
         /**
          * Set shipping method
          */
-        $payment_method = $this->getGeneralConfig("select_payment");
-        $delivery_method = $this->getGeneralConfig("select_delivery");
+        if ($checkRegistredCustomer) {
+            $result_arr = $this->getLastOrder($customer->getId());
+            $payment_method = $result_arr["payment_method"];
+            $delivery_method = $result_arr["shipping_method"];
+        }else {
+            $payment_method = $this->getGeneralConfig("select_payment");
+            $delivery_method = $this->getGeneralConfig("select_delivery");
+        }
         $shippingAddress = $quote->getShippingAddress();
         $shippingAddress->setCollectShippingRates(true)
             ->collectShippingRates()
